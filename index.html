@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Calculation</title>
+    <style>
+        .formula {
+            font-size: 0.9em;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h2>Order Calculator</h2>
+
+    <div id="sticky-controls">
+    <h4>Order Price (item/bundle price)</h4>
+    <div>
+        <label for="order-price">Order Price ($):</label>
+        <input type="number" id="order-price" value="10" min="0" step="0.01">
+    </div>
+
+
+    <div>
+        <label>Quick Price Buttons:</label>
+        <button class="quick-price-btn" data-price="3">3</button>
+        <button class="quick-price-btn" data-price="6">6</button>
+        <button class="quick-price-btn" data-price="6.1">6.1</button>
+        <button class="quick-price-btn" data-price="10">10</button>
+        <button class="quick-price-btn" data-price="15">15</button>
+        <button class="quick-price-btn" data-price="20">20</button>
+        <button class="quick-price-btn" data-price="38.7">38.7</button>
+        <button class="quick-price-btn" data-price="38.8">38.8</button>
+        <button class="quick-price-btn" data-price="50">50</button>
+        <button class="quick-price-btn" data-price="100">100</button>
+        <button class="quick-price-btn" data-price="200">200</button>
+        <button class="quick-price-btn" data-price="300">300</button>
+    </div>
+
+    <p class="note-text">
+        Note that at 7% tax rate, sellers make more money if the item is priced at $6 than at $6.1, also more at $38.7 than at $38.8. An unfortunate artifact of the "1-2-3 Fee Structure".
+    </p>
+
+    <h4>Buyer's Local Sales Tax Rate</h4>
+    <div>
+        <label for="tax-rate">Tax Rate (%) Depending on Buyer's State/County/City:</label>
+        <input type="range" id="tax-rate" min="0" max="15" value="7" step="0.1" style="width: 300px;">
+        <span id="tax-rate-display">7%</span>
+    </div>
+
+    <div>
+        <label>Quick Sales Tax Buttons:</label>
+        <button class="quick-tax-btn" data-tax="0">Portland (0%)</button>
+        <button class="quick-tax-btn" data-tax="7">Miami (7%)</button>
+        <button class="quick-tax-btn" data-tax="8.875">New York (8.875%)</button>
+        <button class="quick-tax-btn" data-tax="9.5">Los Angeles (9.5%)</button>
+        <button class="quick-tax-btn" data-tax="10.35">Seattle (10.35%)</button>
+    </div>
+
+    <p class="note-text">
+        Note that under the new fee schedule, the amount earned by sellers now depends on buyers' locations. Thus there's no way to know the exact earnings at listing time.
+    </p>
+
+    </div>
+
+    <h4>Shipping Fee</h4>
+    <div>
+        <label>Shipping Fee Below 5 Lbs ($):</label>
+        <span id="shipping-fee">7.97</span>
+    </div>
+
+    <!-- <h3>New Fee Plot ($)</h3>
+
+    <p class="note-text">
+        Note that Poshmark collects more fees (buyer+seller fees combined) under the new system for items priced below $100-150, ie. where the red line is above the green line. The exact cross-over point depends on the sales tax percentage at buyers' locations.
+    </p>
+    <canvas id="fee-chart"></canvas>
+
+    <h3>New Fee Plotted as Percentage of Item Price (%)</h3>
+    <p class="note-text">
+        Note that the new fee structure is no longer a constant percentage of the item price. It has jumps due to the 1-2-3 fee structure. The percentage varies based on the sales tax percentage at buyers' locations.
+    </p>
+    <canvas id="fee-percentage-chart"></canvas> -->
+
+    <h3 class="hidden-element">New Fee Plot ($)</h3>
+    <p class="note-text hidden-element">
+        Note that Poshmark collects more fees (buyer+seller fees combined) under the new system for items priced below $100-150, i.e., where the red line is above the green line. The exact cross-over point depends on the sales tax percentage at buyers' locations.
+    </p>
+    <canvas id="fee-chart" class="hidden-element"></canvas>
+
+    <h3 class="hidden-element">New Fee Plotted as Percentage of Item Price (%)</h3>
+    <p class="note-text hidden-element">
+        Note that the new fee structure is no longer a constant percentage of the item price. It has jumps due to the 1-2-3 fee structure. The percentage varies based on the sales tax percentage at buyers' locations.
+    </p>
+    <canvas id="fee-percentage-chart" class="hidden-element"></canvas>
+
+
+
+    <h3>New Fee System Output</h3>
+    <ul>
+        <li><p>Pre-fee Sales Tax: $<span id="pre-fee-tax">0.00</span></p></li>
+    <p class="formula" id="pre-fee-tax-formula"></p>
+
+    <li><p>Order Total: $<span id="order-total">0.00</span></p></li>
+    <p class="formula" id="order-total-formula"></p>
+
+    <li><p>Buyer Fee: $<span id="buyer-fee">0.00</span></p></li>
+    <p class="formula" id="buyer-fee-formula"></p>
+
+    <li><p>Seller Fee: $<span id="seller-fee">0.00</span></p></li>
+    <p class="formula" id="seller-fee-formula"></p>
+
+    <li><p>After-fee Sales Tax for Buyer: $<span id="after-fee-tax">0.00</span></p></li>
+    <p class="formula" id="after-fee-tax-formula"></p>
+
+    <li style="background-color: yellowgreen;"><p>Total Paid by Buyer: $<span id="total-paid-by-buyer">0.00</span></p></li>
+    <p class="formula" id="total-paid-by-buyer-formula"></p>
+
+    <li style="background-color: orange;"><p>Total Earned by Seller: $<span id="total-earned-by-seller">0.00</span></p></li>
+    <p class="formula" id="total-earned-by-seller-formula"></p>
+
+    <li class="total-fees"><p>💰Total Fees Collected by Poshmark: $<span id="total-fees-collected-new">0.00</span></p></li>
+    </ul>
+
+    <h3>Old Fee System Output</h3>
+    <ul>
+    <li><p>Old Seller Fee: $<span id="old-seller-fee">0.00</span></p></li>
+    <p class="formula" id="old-seller-fee-formula"></p>
+
+    <li><p>Old Buyer Fee: $<span id="old-buyer-fee">0.00</span></p></li>
+    <p class="formula" id="old-buyer-fee-formula"></p>
+
+    <li style="background-color: yellowgreen;"><p>Old Total Paid by Buyer: $<span id="old-total-paid-by-buyer">0.00</span></p></li>
+    <p class="formula" id="old-total-paid-by-buyer-formula"></p>
+
+    <li style="background-color: orange;"><p>Old Total Earned by Seller: $<span id="old-total-earned-by-seller">0.00</span></p></li>
+    <p class="formula" id="old-total-earned-by-seller-formula"></p>
+
+    <li class="total-fees"><p>💰Old Total Fees Collected by Poshmark: $<span id="total-fees-collected-old">0.00</span></p></li>
+    </ul>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="script.js"></script>
+
+</body>
+<style>
+    .note-text {
+        color: #d9534f; /* Bootstrap 'danger' color for a noticeable note */
+        font-size: 0.9em;
+        line-height: 0.5;     /* Tighter line height for a compact look */
+        margin-top: 5px;
+    }
+</style>
+
+<style>
+    #fee-chart {
+        width: 300px;  /* Set desired width */
+        height: 100px; /* Set desired height */
+        max-width: 100%; /* Ensure it doesn't exceed the screen width */
+        max-height: 100%; /* Ensure it doesn't exceed container height */
+}
+</style>
+
+<style>
+    #fee-percentage-chart {
+        width: 300px; /* Adjust as needed */
+        height: 100px; /* Adjust as needed */
+    }
+</style>
+
+<style>
+    /* General Styling */
+    body {
+        font-family: 'Arial, Helvetica, sans-serif';
+        background-color: #f0f8ff; /* Light blue background */
+        color: #333; /* Dark grey text for readability */
+        margin: 0;
+        padding: 20px;
+        line-height: 1.6;
+    }
+
+    h3 {
+        color: #2c3e50; /* Dark blue for headings */
+        border-bottom: 2px solid #4CAF50; /* Green line under headings */
+        padding-bottom: 5px;
+    }
+
+    ul {
+        list-style: none; /* Remove default bullets */
+        padding: 0;
+    }
+
+    li {
+        background: #ffffff; /* White background for better readability */
+        border: 1px solid #ddd; /* Light border to define each item */
+        padding: 5px;
+        margin-bottom: 0px;
+        border-radius: 1px; /* Rounded corners for a softer look */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+        line-height: 0.1; /* Reduce line height for more compact content */
+    }
+
+    li span {
+        font-weight: bold; /* Bold text for dynamic values */
+        color: #2c3e50; /* Dark blue for emphasis */
+    }
+
+    /* Matching Colors for Related Fees */
+    .new-fees,
+    .old-fees {
+        border-left: 5px solid #4CAF50; /* Green border to highlight related fees */
+        padding-left: 10px;
+    }
+
+    .highlighted {
+        background-color: #e6ffe6; /* Light green background to connect similar items */
+    }
+
+    /* Container for Old and New Fees Comparison */
+    .fee-container {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .fee-box {
+        flex: 1;
+        min-width: 300px;
+        background: #ffffff;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    /* Styling the Total Fees Collected Items */
+    .total-fees {
+        background-color: #dff0d8; /* Light green for visual emphasis */
+        border: 1px solid #4CAF50;
+        padding: 15px;
+        font-weight: bold;
+    }
+
+    /* Button Styles for Quick Access Buttons */
+    .quick-tax-btn,
+    .quick-price-btn {
+        background-color: #4CAF50; /* Green button */
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin: 10px 5px;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+    }
+
+    .quick-tax-btn:hover,
+    .quick-price-btn:hover {
+        background-color: #45a049; /* Darker green on hover */
+    }
+
+    /* Chart Container Styling */
+    .chart-container {
+        margin-top: 40px;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Tooltip Styling */
+    li[title] {
+        position: relative;
+    }
+
+    li[title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        left: 0;
+        bottom: 110%;
+        background: #333;
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 5px;
+        white-space: nowrap;
+        font-size: 0.8em;
+    }
+
+    /* Styling the Total Fees Collected Items */
+    .total-fees {
+        background-color: #B61D5F; /* Light green for visual emphasis */
+        border: 1px solid #4CAF50;
+        padding: 15px;
+        font-weight: bold;
+        color: #ffffff; /* Set text color to white */
+    }
+
+    .total-fees span {
+    color: #ffffff; /* Set the span text color to white */
+    }
+
+    #sticky-controls {
+    position: sticky;
+    top: 0; /* Position at the top of the viewport */
+    background-color: #f0f8ff; /* Light blue background for contrast */
+    padding: 10px;
+    border-bottom: 2px solid #ddd; /* Optional: Border to visually separate it from the content below */
+    z-index: 1000; /* Ensure it stays on top of other elements */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add a shadow for better visibility */
+    }
+
+    h4 {
+    font-size: 1.2em; /* Adjust the font size as needed */
+    line-height: 1.2; /* Reduce line height to make it more compact */
+    margin: 5px 0; /* Reduce vertical margin */
+    padding: 0; /* Remove padding to save space */
+    }
+
+    .hidden-element {
+    display: none; /* Completely hides the element and removes it from the page layout */
+}
+
+
+</style>
+
+
+</html>
