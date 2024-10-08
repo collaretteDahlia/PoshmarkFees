@@ -15,11 +15,12 @@
     <h2>Order Calculator</h2>
 
     <div id="sticky-controls">
+    <!-- <button id="toggle-btn">Minimize</button> -->
+    <div id="controls-content">
     <nav>
-        <a href="https://collarettedahlia.github.io/PoshmarkFees/">Home Page</a> | 
+        <a href="https://collarettedahlia.github.io/PoshmarkFees/">Home Page</a> |
         <a href="https://collarettedahlia.github.io/PoshmarkFees/chart">Chart Page</a>
     </nav>
-
     <h4>Buyer's Local Sales Tax Rate</h4>
     <div>
         <label for="tax-rate">Tax Rate (%) Depending on Buyer's State/County/City:</label>
@@ -39,7 +40,7 @@
     <p class="note-text">
         Note that under the new fee schedule, the amount earned by sellers now depends on buyers' locations. Thus there's no way to know the exact earnings at listing time.
     </p>
-
+    </div>
     </div>
 
     <h4>Shipping Fee</h4>
@@ -241,7 +242,7 @@
     }
 
     #sticky-controls {
-    position: sticky;
+    position: static; /*sticky;*/
     top: 0; /* Position at the top of the viewport */
     background-color: #f0f8ff; /* Light blue background for contrast */
     padding: 10px;
@@ -279,7 +280,19 @@
         height: 400px;           /* Set a fixed height for consistency */
     }
 
+    #toggle-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    }
 
+    #toggle-btn:hover {
+        background-color: #45a049;
+    }
 </style>
 
 
